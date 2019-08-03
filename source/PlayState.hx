@@ -23,6 +23,8 @@ class PlayState extends FlxState {
 		_player = new Player();
 		_map.loadEntities(placeEntities, "entities");
 		add(_player);
+
+		FlxG.camera.follow(_player, TOPDOWN, 1);
 	}
 
 	override public function update(elapsed:Float):Void {
