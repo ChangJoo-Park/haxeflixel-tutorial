@@ -1,5 +1,6 @@
 package;
 
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.tile.FlxTilemap;
@@ -11,6 +12,8 @@ class PlayState extends FlxState {
 	var _map:FlxOgmoLoader;
 	var _mWalls:FlxTilemap;
 
+	var _grpCoins:FlxTypedGroup<Coin>;
+
 	override public function create():Void {
 		super.create();
 		_map = new FlxOgmoLoader(AssetPaths.room_001__oel);
@@ -21,8 +24,12 @@ class PlayState extends FlxState {
 		add(_mWalls);
 
 		_player = new Player();
-		_map.loadEntities(placeEntities, "entities");
 		add(_player);
+
+		_grpCoins = new FlxTypedGroup<Coin>();
+		add(_grpCoins);
+
+		_map.loadEntities(placeEntities, "entities");
 
 		FlxG.camera.follow(_player, TOPDOWN, 1);
 	}
@@ -30,6 +37,7 @@ class PlayState extends FlxState {
 	override public function update(elapsed:Float):Void {
 		super.update(elapsed);
 		FlxG.collide(_player, _mWalls);
+		FlxG.overlap(_player, _grpCoins, playerTouchCoin);
 	}
 
 	function placeEntities(entityName:String, entityData:Xml):Void {
@@ -38,6 +46,14 @@ class PlayState extends FlxState {
 		if (entityName == "player") {
 			_player.x = x;
 			_player.y = y;
+		} else if (entityName == "coin") {
+			_grpCoins.add(new Coin(x + 4, y + 4));
+		}
+	}
+
+	function playerTouchCoin(P:Player, C:Coin):Void {
+		if (P.alive && P.exists && C.alive && C.exists) {
+			C.kill();
 		}
 	}
 }
