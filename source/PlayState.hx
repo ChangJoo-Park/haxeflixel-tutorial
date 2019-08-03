@@ -13,6 +13,7 @@ class PlayState extends FlxState {
 	var _mWalls:FlxTilemap;
 
 	var _grpCoins:FlxTypedGroup<Coin>;
+	var _grpEnemies:FlxTypedGroup<Enemy>;
 
 	override public function create():Void {
 		super.create();
@@ -29,6 +30,9 @@ class PlayState extends FlxState {
 		_grpCoins = new FlxTypedGroup<Coin>();
 		add(_grpCoins);
 
+		_grpEnemies = new FlxTypedGroup<Enemy>();
+		add(_grpEnemies);
+
 		_map.loadEntities(placeEntities, "entities");
 
 		FlxG.camera.follow(_player, TOPDOWN, 1);
@@ -38,6 +42,8 @@ class PlayState extends FlxState {
 		super.update(elapsed);
 		FlxG.collide(_player, _mWalls);
 		FlxG.overlap(_player, _grpCoins, playerTouchCoin);
+		FlxG.collide(_grpEnemies, _mWalls);
+		_grpEnemies.forEachAlive(checkEnemyVision);
 	}
 
 	function placeEntities(entityName:String, entityData:Xml):Void {
@@ -48,6 +54,8 @@ class PlayState extends FlxState {
 			_player.y = y;
 		} else if (entityName == "coin") {
 			_grpCoins.add(new Coin(x + 4, y + 4));
+		} else if (entityName == "enemy") {
+			_grpEnemies.add(new Enemy(x + 4, y, Std.parseInt(entityData.get("etype"))));
 		}
 	}
 
@@ -55,5 +63,13 @@ class PlayState extends FlxState {
 		if (P.alive && P.exists && C.alive && C.exists) {
 			C.kill();
 		}
+	}
+
+	function checkEnemyVision(e:Enemy):Void {
+		if (_mWalls.ray(e.getMidpoint(), _player.getMidpoint())) {
+			e.seesPlayer = true;
+			e.playerPos.copyFrom(_player.getMidpoint());
+		} else
+			e.seesPlayer = false;
 	}
 }
